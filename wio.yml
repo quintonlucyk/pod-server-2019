@@ -19,17 +19,34 @@ targets:
       target:
         - SENSOR_DB_FILE=$(PROJECT_PATH)/db_files/testing/sensor.db3
         - CONTROLS_DB_FILE=$(PROJECT_PATH)/db_files/testing/controls.db3
+        - DEBUG=1
     flags:
       target:
       - -O3
     linker_flags:
-    - $darwin(-lpthread -ldl) $linux(-lpthread -ldl)
+    - $darwin(-lpthread -ldl) $linux(-pthread -ldl)
 
 dependencies:
-  wio-sqlitecpp:
-    version: 1.0.2
   can-packet:
     version: 1.0.1
+  simple-websocket-server-cpp:
+    version: 1.0.3
+  wio-sqlitecpp:
+    version: 1.0.2
+  wlib-json:
+    version: 1.0.5
+    definitions:
+    - WLIB_TLSF_ARCH=64
+    - WLIB_TLSF_LOG2_DIV=4
+    - WLIB_TLSF_LOG2_ALIGN=3
+    - WLIB_TLSF_LOG2_MAX=20
+  wlib-memory:
+    version: 1.0.4
+    definitions:
+    - WLIB_TLSF_ARCH=64
+    - WLIB_TLSF_LOG2_DIV=4
+    - WLIB_TLSF_LOG2_ALIGN=3
+    - WLIB_TLSF_LOG2_MAX=20
   websocketpp:
     version: 1.0.0
 

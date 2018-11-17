@@ -2,6 +2,9 @@
 #include <cmath>
 #include <cstring>
 #include <ctime>
+
+#include <wlib/json>
+
 #include "DatabaseHandler.hh"
 
 DatabaseHandler* DatabaseHandler::m_pInstance = nullptr;
@@ -16,6 +19,7 @@ DatabaseHandler::DatabaseHandler(const std::string &sensorDBFilename, const std:
         std::string statement = "\
             CREATE TABLE [" + this->tableName + "] (\
                 id INT(32) PRIMARY KEY UNIQUE, \
+                type INT(32), \
                 data NUMERIC\
             );";
         SQLite::Statement createSensorTable(*(this->m_pSensorDB), statement);
@@ -35,35 +39,23 @@ DatabaseHandler::~DatabaseHandler() {
     delete m_pControlsDB;
 }
 
-bool doubleEquals(double a, double b) {
-    return ((int64_t)(round(a * 1000000))) == ((int64_t)(round(b * 1000000)));
+bool checkZero(double a) {
+    return ((int64_t)(round(a * 1000000))) == 0;
 }
-
-void DatabaseHandler::storePacket(wlp::Packet &packet) {
-    const uint32_t id = packet.id();
-    const uint32_t type = packet.type(); // Where 0 - Controls, 1 - Sensors
-    const uint32_t data = packet.data();
-    const float dataf = packet.dataf();
-
-    // Print out packet information, just to see each packet's data (debug)
-    bool isFloat = !doubleEquals(packet.dataf(), 0);
-    printf("Incoming Packet:\n%-10s %-10s %-10s\n", "ID", "Type", "Data");
-    if (isFloat)
-        printf("%-10d %-10d %-10f\n\n", id, type, dataf);
-    else
-        printf("%-10d %-10d %-10d\n\n", id, type, data);
+void DatabaseHandler::storePacket(wlp::json_element &json) {
+    const uint32_t id = json["id"].as<uint32_t>();
+    const uint32_t type = json["type"].as<uint32_t>(); // Where 0 - Controls, 1 - Sensors
+    const uint32_t data = json["data"].as<uint32_t>();
+    const float dataf = json["dataf"].as<float>();
 
     try {
-        // Insert the row
         std::string insertStatement = "\
-            INSERT INTO [" + this->tableName + "] (id, data)\
-            VALUES(?, ?);";
-        SQLite::Statement insert(type ? *(this->m_pSensorDB) : *(this->m_pControlsDB), insertStatement);
+            INSERT INTO [" + this->tableName + "] (id, type, data)\
+            VALUES(?, ?, ?);";
+        SQLite::Statement insert((type == 2 || type == 3) ? *(this->m_pSensorDB) : *(this->m_pControlsDB), insertStatement);
         insert.bind(1, id);
-        if (isFloat)
-            insert.bind(2, dataf);
-        else
-            insert.bind(2, data);
+        insert.bind(2, type);
+        insert.bind(3, type % 2 ? dataf : data);
         insert.exec();
     }
     catch (std::exception& e) {
@@ -72,9 +64,7 @@ void DatabaseHandler::storePacket(wlp::Packet &packet) {
 }
 
 DatabaseHandler *DatabaseHandler::geInstance() {
-    if (m_pInstance == nullptr) {
+    if (m_pInstance == nullptr)
         m_pInstance = new DatabaseHandler();
-    }
-
     return m_pInstance;
 }
