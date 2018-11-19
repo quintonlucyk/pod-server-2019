@@ -12,8 +12,8 @@ project:
     default_target: main
 
 targets:
-  main:
-    src: src
+  server:
+    src: src/server
     platform: native
     definitions:
       target:
@@ -24,7 +24,20 @@ targets:
       target:
       - -O3
     linker_flags:
-    - $darwin(-lpthread -ldl) $linux(-pthread -ldl)
+    - $darwin(-lpthread -ldl) $linux(-pthread -ldl -dl)
+  client:
+    src: src/client
+    platform: native
+    definitions:
+      target:
+        - SENSOR_DB_FILE=$(PROJECT_PATH)/db_files/testing/sensor.db3
+        - CONTROLS_DB_FILE=$(PROJECT_PATH)/db_files/testing/controls.db3
+        - DEBUG=1
+    flags:
+      target:
+      - -O3
+    linker_flags:
+    - $darwin(-lpthread -ldl) $linux(-pthread -ldl -dl)
 
 dependencies:
   can-packet:
