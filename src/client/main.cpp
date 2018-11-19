@@ -15,7 +15,7 @@ typedef websocketpp::config::asio_client::message_type::ptr message_ptr;
 
 // Handlers
 void on_open(client* c, websocketpp::connection_hdl hdl) {
-    std::string msg = "Hello";
+    std::string msg = "Hello World\nQuinton here.";
     c->send(hdl,msg,websocketpp::frame::opcode::text);
     c->get_alog().write(websocketpp::log::alevel::app, "Sent Message: "+msg);
 }
