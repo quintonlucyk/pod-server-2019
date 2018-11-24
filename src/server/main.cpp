@@ -22,27 +22,32 @@ public:
 
     void on_open(connection_hdl hdl) {
         m_connections.insert(hdl);
-        std::cout << "ola";
+        std::cout << "\non_open\n";
     }
 
     void on_close(connection_hdl hdl) {
         m_connections.erase(hdl);
+        std::cout << "\non_close\n";
     }
 
     void on_message(connection_hdl hdl, server::message_ptr msg) {
         for (auto it : m_connections) {
-            m_server.send(it,msg);
+            //alternative send:
+            //m_server.send(it,msg);
+            //^sending back identical message
+            std::string newMessage = msg->get_payload() + " World!";
+            m_server.send(it,newMessage,websocketpp::frame::opcode::text);
             std::cout<<msg;
         }
         std::cout<<msg;
-        std::cout << "ola";
+        std::cout << "\non_message\n";
     }
 
     void run(uint16_t port) {
         m_server.listen(port);
         m_server.start_accept();
         m_server.run();
-        std::cout << "ola";
+        std::cout << "\nrun\n";
     }
 private:
     typedef std::set<connection_hdl,std::owner_less<connection_hdl>> con_list;
@@ -55,7 +60,7 @@ int main() {
     broadcast_server server;
     server.run(9002);
 
-    std::cout << "ola";
+    std::cout << "\nmain\n";
 
 
 }
